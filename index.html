@@ -235,9 +235,9 @@ h2.display {
 .callout strong { color:var(--blue); }
 
 /* reveal */
-.rx { opacity:0; transform:translateY(40px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
-.rx.on { opacity:1; transform:none; }
-.rx.d1{transition-delay:.1s} .rx.d2{transition-delay:.2s} .rx.d3{transition-delay:.3s} .rx.d4{transition-delay:.4s}
+.rx { opacity:0; transform:translateY(32px) scale(0.995); transition:opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1); }
+.rx.on { opacity:1; transform:translateY(0) scale(1); }
+.rx.d1{transition-delay:.08s} .rx.d2{transition-delay:.16s} .rx.d3{transition-delay:.24s} .rx.d4{transition-delay:.32s} .rx.d5{transition-delay:.40s} .rx.d6{transition-delay:.48s}
 
 /* ===================== CARDS ===================== */
 .card {
@@ -319,7 +319,7 @@ h2.display {
 .persona-wrap { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
 @media(max-width:900px){ .persona-wrap{grid-template-columns:1fr} }
 
-.persona-card { background:#fff; border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; transition:transform .3s, box-shadow .3s; box-shadow:0 2px 12px rgba(0,52,120,.07); }
+.persona-card { background:#fff; border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .3s; box-shadow:0 2px 12px rgba(0,52,120,.07); }
 .persona-card:hover { transform:translateY(-4px); box-shadow:var(--sh2); }
 .persona-head { padding:32px 32px 0; }
 .persona-icon { font-size:2.4rem; margin-bottom:16px; }
@@ -374,7 +374,7 @@ h2.display {
 
 /* ===================== MEDIA PLAN ===================== */
 .channel-list { display:flex; flex-direction:column; gap:2px; }
-.channel-row { display:grid; grid-template-columns:260px 1fr auto; align-items:center; gap:32px; padding:28px 32px; background:#fff; border:1px solid var(--border); transition:.3s; box-shadow:0 1px 6px rgba(0,52,120,.05); }
+.channel-row { display:grid; grid-template-columns:260px 1fr auto; align-items:center; gap:32px; padding:28px 32px; background:#fff; border:1px solid var(--border); transition:background .3s, box-shadow .4s cubic-bezier(.22,1,.36,1), transform .3s; box-shadow:0 1px 6px rgba(0,52,120,.05); }
 .channel-row:hover { background:var(--bg2); box-shadow:0 4px 20px rgba(0,52,120,.1); }
 .channel-row:first-child { border-top-left-radius:var(--rl); border-top-right-radius:var(--rl); }
 .channel-row:last-child { border-bottom-left-radius:var(--rl); border-bottom-right-radius:var(--rl); border-radius:0 0 var(--rl) var(--rl); }
@@ -558,7 +558,7 @@ footer { text-align:center; padding:40px; border-top:1px solid var(--border); fo
     <li><a href="#budget">Budget</a></li>
     <li><a href="#cta">Decisioni</a></li>
   </ul>
-  <button class="nav-pill">Richiedi proposta ↗</button>
+
 </nav>
 
 <!-- HERO -->
@@ -1460,7 +1460,7 @@ function initChart() {
     type: 'doughnut',
     data: {
       labels: BD.cons.labels,
-      datasets: [{ data: BD.cons.data, backgroundColor: BD.cons.colors, borderColor:'#05070F', borderWidth:4, hoverOffset:10 }]
+      datasets: [{ data: BD.cons.data, backgroundColor: BD.cons.colors, borderColor:'#FFFFFF', borderWidth:1.5, hoverOffset:6 }]
     },
     options: {
       responsive: true, cutout: '68%',
@@ -1468,7 +1468,7 @@ function initChart() {
         legend: { position:'bottom', labels:{ color:'#8899BB', padding:18, font:{size:12,family:'Inter'} } },
         tooltip: { backgroundColor:'#FFFFFF', titleColor:'#0D1F3C', bodyColor:'#3D5475', borderColor:'rgba(0,52,120,.12)', borderWidth:1, padding:12, callbacks:{ label: c => `${c.label}: ${c.parsed}%` } }
       },
-      animation: { animateRotate:true, duration:1000 }
+      animation: { animateRotate:true, animateScale:true, duration:1400, easing:'easeOutQuart' }
     }
   });
 }
@@ -1497,8 +1497,10 @@ function initFormulaChart() {
       datasets: [{
         data: [33, 29, 20, 18],
         backgroundColor: ['#003478','#4F22A0','#A06B00','#B0BED4'],
-        borderRadius: 6,
-        borderSkipped: false
+        borderRadius: 4,
+        barPercentage: 0.72,
+        categoryPercentage: 0.88,
+        borderSkipped: 'bottom'
       }]
     },
     options: {
@@ -1508,7 +1510,7 @@ function initFormulaChart() {
         legend: { display: false },
         tooltip: {
           backgroundColor: '#0D1225', titleColor:'#F8FAFF', bodyColor:'#8899BB',
-          borderColor:'rgba(255,255,255,.08)', borderWidth:1, padding:12,
+          borderColor:'rgba(0,52,120,.12)', borderWidth:1, padding:12,
           callbacks: { label: c => `  ${c.parsed.x}% delle PMI` }
         }
       },
@@ -1525,7 +1527,7 @@ function initFormulaChart() {
           border: { color:'transparent' }
         }
       },
-      animation: { duration:1200, easing:'easeOutQuart' }
+      animation: { duration:1500, easing:'easeOutCubic' }
     }
   });
 }
@@ -1573,7 +1575,17 @@ function updateSliderFill(id, min, max) {
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
   initChart();
-  initFormulaChart();
+  // Lazy-init formula chart when canvas scrolls into view
+  const fCanvas = document.getElementById("formulaChart");
+  if (fCanvas) {
+    let fInited = false;
+    const fObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !fInited) { fInited = true; initFormulaChart(); fObs.disconnect(); }
+      });
+    }, { threshold: 0.3 });
+    fObs.observe(fCanvas);
+  }
   updateCalc(); // initialize calculator display
   updateSliderFill('sl-reach', 5000, 100000);
   updateSliderFill('sl-freq',  4,    20);
